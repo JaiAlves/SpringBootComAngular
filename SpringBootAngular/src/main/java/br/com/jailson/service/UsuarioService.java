@@ -41,7 +41,7 @@ public class UsuarioService {
  		try {
  			return new ResponseEntity<Usuario>(this.usuarioRepository.save(usuario), HttpStatus.CREATED);
  		}catch(Exception e) {
- 			return new ResponseEntity<String>("Não foi adicionar."+e, HttpStatus.BAD_REQUEST);			
+ 			return new ResponseEntity<String>("Não foi possivel adicionar."+e, HttpStatus.BAD_REQUEST);			
 		}
 	}
 	
