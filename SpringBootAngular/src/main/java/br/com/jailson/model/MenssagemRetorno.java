@@ -2,7 +2,7 @@ package br.com.jailson.model;
 
 public class MenssagemRetorno {
 	
-	public static final String OK="0'";
+	public static final String OK="01";
 	public static final String ERRO_CHAMADA="06";
 	public static final String ERRO_SERVER="90";
 	
