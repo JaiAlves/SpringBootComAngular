@@ -2,7 +2,6 @@ package br.com.jailson.service;
 
 import java.util.List;
 
-import org.apache.catalina.filters.SetCharacterEncodingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,7 +158,8 @@ public class UsuarioService {
 		    	
 		    	return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.NOT_FOUND);
 			}
-	 
+			retorno.setObjetoRetorno(usu);
+			
 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.OK);
 		} catch(Exception e) {
  			MenssagemRetorno retorno = new MenssagemRetorno();
@@ -181,11 +181,12 @@ public class UsuarioService {
 	@RequestMapping(value="/usuario/{id}", method = RequestMethod.DELETE, produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ResponseEntity<?>  excluir(@PathVariable("id") Integer id) {
  
+		MenssagemRetorno retorno = new MenssagemRetorno();
+		
 		Usuario usuario = usuarioRepository.findOne(id);
 		String msgErro = "Não foi possivel apagar. Usuario com id "+id+" não encontrado.";
  
 		if (usuario==null) {
- 			MenssagemRetorno retorno = new MenssagemRetorno();
 			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
 			retorno.setMenssagemRetorno(msgErro);
 			
@@ -195,10 +196,12 @@ public class UsuarioService {
 		
 		try {
 			usuarioRepository.delete(usuario);
- 
-			return new ResponseEntity<Usuario>(HttpStatus.OK);
+
+			retorno.setCodigoRetorno(MenssagemRetorno.OK);
+			retorno.setMenssagemRetorno("Usuario excluido com sucesso!");
+			
+			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.OK);
 		} catch(Exception e) {
- 			MenssagemRetorno retorno = new MenssagemRetorno();
 			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_SERVER);
 			retorno.setMenssagemRetorno(msgErro+e.getMessage());			
 			
