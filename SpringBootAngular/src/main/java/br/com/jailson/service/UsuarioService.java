@@ -2,6 +2,7 @@ package br.com.jailson.service;
 
 import java.util.List;
 
+import org.apache.catalina.filters.SetCharacterEncodingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import br.com.jailson.model.MenssagemRetorno;
 import br.com.jailson.model.Usuario;
 import br.com.jailson.repository.UsuarioRepository;
 
@@ -36,12 +40,28 @@ public class UsuarioService {
 	 * @param usuario
 	 * @return ResponseEntity
 	 */
-	@RequestMapping(value="/usuario", method = RequestMethod.POST, consumes=MediaType.APPLICATION_JSON_UTF8_VALUE,produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<?> salvar(@RequestBody Usuario usuario) {
+	@RequestMapping(value="/usuario", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> salvar(@RequestBody Usuario usuario, UriComponentsBuilder ucBuilder) {
+		log.info("Criar usuario ");
+		
  		try {
- 			return new ResponseEntity<Usuario>(this.usuarioRepository.save(usuario), HttpStatus.CREATED);
+ 			usuario.setIdUsuario(null);
+ 			
+ 			Usuario usu = this.usuarioRepository.save(usuario);
+ 			
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+			retorno.setCodigoRetorno(MenssagemRetorno.OK);
+			retorno.setMenssagemRetorno("Usuário criado com sucesso!");
+			retorno.setObjetoRetorno(usu);
+		
+ 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.CREATED);
  		}catch(Exception e) {
- 			return new ResponseEntity<String>("Não foi possivel adicionar."+e, HttpStatus.BAD_REQUEST);			
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
+			retorno.setMenssagemRetorno("Não foi possivel adicionar."+e.getMessage());
+ 			
+ 			log.error("Erro ao tentar add usuário",e);
+ 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);			
 		}
 	}
 	
@@ -50,12 +70,34 @@ public class UsuarioService {
 	 * @param usuario
 	 * @return
 	 */
-	@RequestMapping(value="/usuario", method = RequestMethod.PUT, consumes=MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<?>  atualizar(@RequestBody Usuario usuario) {
+	@PutMapping(value="/usuario", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> atualizar(@RequestBody Usuario usuario) {
+		log.info("Atualizar usuario ");
  		try {
- 			return new ResponseEntity<Usuario>(this.usuarioRepository.save(usuario), HttpStatus.OK);
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+
+			if (usuario == null) {
+				retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
+		    	retorno.setMenssagemRetorno("Usuário não informado!");
+		    	
+		    	return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);
+			}
+ 			
+ 			Usuario usu = this.usuarioRepository.save(usuario);
+ 			
+ 			retorno.setCodigoRetorno(MenssagemRetorno.OK);
+ 			retorno.setMenssagemRetorno("Usuário atualizado com sucesso!");
+ 			retorno.setObjetoRetorno(usu);
+ 			
+ 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.OK);
  		}catch(Exception e) {
- 			return new ResponseEntity<String>("Não foi adicionar. Usuario não deserializado.", HttpStatus.BAD_REQUEST);			
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
+			retorno.setMenssagemRetorno("Não foi possivel alterar usuario."+e.getMessage());
+			
+ 			log.error("Erro ao tentar add usuário",e);
+ 			e.printStackTrace();
+ 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);			
 		}
 		
 	}
@@ -65,15 +107,36 @@ public class UsuarioService {
 	 * @return
 	 */
 	@RequestMapping(value="/usuarios", method = RequestMethod.GET, produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<List<Usuario>>  consultarTodos() {
- 	    List<Usuario> list = (List<Usuario>) usuarioRepository.findAll();
+	public ResponseEntity<MenssagemRetorno> consultarTodos() {
+		List<Usuario> list = null;
+		try {
+ 	    	list = (List<Usuario>) usuarioRepository.findAll();
+ 	    	
+ 		    if (list==null || list.size()==0) {
+ 		    	MenssagemRetorno retorno = new MenssagemRetorno();
+ 		    	retorno.setCodigoRetorno(MenssagemRetorno.OK);
+ 		    	retorno.setMenssagemRetorno("Nenhum registro encontrado!");
+ 		    	
+ 		    	return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.NOT_FOUND);
+ 		    }
+ 		    
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+ 			retorno.setCodigoRetorno(MenssagemRetorno.OK);
+ 			retorno.setMenssagemRetorno("lista obtida com sucesso!");
+ 			retorno.setObjetoRetorno(list);
+ 		    
+ 		    return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.OK); 	    	
+		} catch (Exception e) {
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
+			retorno.setMenssagemRetorno("Não foi possivel obter a lista de usuarios."+e.getMessage());
+			
+ 			log.error("Erro ao tentar obter lista de usuarios",e);
+ 			e.printStackTrace();
+ 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);			
+		}
 	    
-	    if (list==null || list.size()==0) {
-	    	return new ResponseEntity<List<Usuario>>(list, HttpStatus.NOT_FOUND);
-	    }
-	    
-	    return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
-		
+
 	}	
 	
 	/**
@@ -82,9 +145,32 @@ public class UsuarioService {
 	 * @return
 	 */
 	@RequestMapping(value="/usuario/{id}", method = RequestMethod.GET, produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public Usuario buscar(@PathVariable("id") Integer id) {
- 
-		return this.usuarioRepository.findOne(id);
+	public ResponseEntity<MenssagemRetorno> buscar(@PathVariable("id") Integer id) {
+		
+		try {
+	    	MenssagemRetorno retorno = new MenssagemRetorno();
+	    	retorno.setCodigoRetorno(MenssagemRetorno.OK);
+	    	retorno.setMenssagemRetorno("Usuário encontrado com sucesso!");
+		
+			Usuario usu = this.usuarioRepository.findOne(id);
+			
+			if (usu == null) {
+		    	retorno.setMenssagemRetorno("Nenhum registro encontrado!");
+		    	
+		    	return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.NOT_FOUND);
+			}
+	 
+			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.OK);
+		} catch(Exception e) {
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
+			retorno.setMenssagemRetorno("Não foi possivel obter o usuario parao id "+id+e.getMessage());
+			
+ 			log.error("Erro ao tentar obter o usuario para o id "+id,e);
+ 			e.printStackTrace();
+ 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);			
+			
+		}
 	}
 	
 	/***
@@ -96,11 +182,15 @@ public class UsuarioService {
 	public ResponseEntity<?>  excluir(@PathVariable("id") Integer id) {
  
 		Usuario usuario = usuarioRepository.findOne(id);
-		String msgErro = "excluir(): Não foi possivel apagar. Usuario com id "+id+" não encontrado.";
+		String msgErro = "Não foi possivel apagar. Usuario com id "+id+" não encontrado.";
  
 		if (usuario==null) {
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
+			retorno.setMenssagemRetorno(msgErro);
+			
 			log.error(msgErro);
-			return new ResponseEntity<String>(msgErro, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.NOT_FOUND);
 		}
 		
 		try {
@@ -108,7 +198,12 @@ public class UsuarioService {
  
 			return new ResponseEntity<Usuario>(HttpStatus.OK);
 		} catch(Exception e) {
-			return new ResponseEntity<String>(msgErro, HttpStatus.BAD_REQUEST);
+ 			MenssagemRetorno retorno = new MenssagemRetorno();
+			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_SERVER);
+			retorno.setMenssagemRetorno(msgErro+e.getMessage());			
+			
+			e.printStackTrace();
+			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.NOT_FOUND);
 		}
 	}	
 	
