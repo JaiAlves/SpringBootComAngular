@@ -57,7 +57,7 @@ public class UsuarioService {
  		}catch(Exception e) {
  			MenssagemRetorno retorno = new MenssagemRetorno();
 			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
-			retorno.setMenssagemRetorno("Não foi possivel adicionar."+e.getMessage());
+			retorno.setMenssagemRetorno("Não foi possivel adicionar usuario.");
  			
  			log.error("Erro ao tentar add usuário",e);
  			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);			
@@ -92,10 +92,9 @@ public class UsuarioService {
  		}catch(Exception e) {
  			MenssagemRetorno retorno = new MenssagemRetorno();
 			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
-			retorno.setMenssagemRetorno("Não foi possivel alterar usuario."+e.getMessage());
+			retorno.setMenssagemRetorno("Não foi possivel alterar usuario.");
 			
  			log.error("Erro ao tentar add usuário",e);
- 			e.printStackTrace();
  			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);			
 		}
 		
@@ -128,10 +127,9 @@ public class UsuarioService {
 		} catch (Exception e) {
  			MenssagemRetorno retorno = new MenssagemRetorno();
 			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
-			retorno.setMenssagemRetorno("Não foi possivel obter a lista de usuarios."+e.getMessage());
+			retorno.setMenssagemRetorno("Não foi possivel obter a lista de usuarios.");
 			
  			log.error("Erro ao tentar obter lista de usuarios",e);
- 			e.printStackTrace();
  			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);			
 		}
 	    
@@ -164,10 +162,9 @@ public class UsuarioService {
 		} catch(Exception e) {
  			MenssagemRetorno retorno = new MenssagemRetorno();
 			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_CHAMADA);
-			retorno.setMenssagemRetorno("Não foi possivel obter o usuario parao id "+id+e.getMessage());
+			retorno.setMenssagemRetorno("Não foi possivel obter o usuario parao id "+id);
 			
  			log.error("Erro ao tentar obter o usuario para o id "+id,e);
- 			e.printStackTrace();
  			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.BAD_REQUEST);			
 			
 		}
@@ -203,9 +200,10 @@ public class UsuarioService {
 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.OK);
 		} catch(Exception e) {
 			retorno.setCodigoRetorno(MenssagemRetorno.ERRO_SERVER);
-			retorno.setMenssagemRetorno(msgErro+e.getMessage());			
+			retorno.setMenssagemRetorno(msgErro);			
 			
-			e.printStackTrace();
+ 			log.error("Erro ao tentar excluir o usuario para o id "+id,e);
+
 			return new ResponseEntity<MenssagemRetorno>(retorno, HttpStatus.NOT_FOUND);
 		}
 	}	
